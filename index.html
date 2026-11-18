@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Лабораторная 4: отсечение отрезков и выпуклых многоугольников. Вариант 14, Лианг–Барски и Кирус–Бек."><title>Отсечение · Лабораторная 4</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='6' width='20' height='20' fill='none' stroke='%232557bd' stroke-width='3'/%3E%3Cpath d='M6 22L26 10' stroke='%23c42b69' stroke-width='4'/%3E%3C/svg%3E"><link rel="stylesheet" href="styles.css?v=20261118-wd4"><link rel="stylesheet" href="explain.css?v=20261118-wd4"><script type="module" src="src/app.js?v=20261118-wd4"></script><script defer src="src/explain.js?v=20261118-wd4"></script></head>
+<body id="top"><header><a class="brand" href="#top"><span aria-hidden="true">⌗</span> Геометрия видимости</a><span>Компьютерная графика / Лабораторная №4</span></header>
+<main><div class="intro"><div><h1>Отсечение отрезков<br>и многоугольников</h1></div><label class="variant">Номер варианта<select id="variant" aria-label="Номер варианта"></select><small id="variant-note" hidden></small></label></div>
+<nav class="parts" aria-label="Части лабораторной"><button id="part1" class="active" aria-pressed="true">Часть 1 · Прямоугольное окно</button><button id="part2" aria-pressed="false">Часть 2 · Выпуклый многоугольник</button><button id="wd-mode" aria-pressed="false">Кирус–Бек · W и D</button></nav>
+<section id="wd-panel" class="wd-lesson" hidden><div id="wd-cyrus-demo-14">
+  <h2>Кирус–Бек</h2>
+  <div class="viz-controls wd-coordinates">
+    <label class="form-label">Aₓ<input class="form-control" data-coordinate="ax" type="number" min="-1000000" max="1000000" step="0.5" value="-12"></label>
+    <label class="form-label">Aᵧ<input class="form-control" data-coordinate="ay" type="number" min="-1000000" max="1000000" step="0.5" value="-2"></label>
+    <label class="form-label">Bₓ<input class="form-control" data-coordinate="bx" type="number" min="-1000000" max="1000000" step="0.5" value="12"></label>
+    <label class="form-label">Bᵧ<input class="form-control" data-coordinate="by" type="number" min="-1000000" max="1000000" step="0.5" value="4"></label>
+  </div>
+  <div class="viz-controls"><label class="form-label">Сторона<select class="form-select" data-role="edge"></select></label><button class="btn" type="button" data-role="play">Анимация</button></div>
+  <div class="viz-grid wd-values">
+    <div class="card viz-stat"><span>W</span><div class="viz-stat-value tabular-nums" data-value="W"></div><span class="text-small" data-value="position"></span></div>
+    <div class="card viz-stat"><span>D</span><div class="viz-stat-value tabular-nums" data-value="D"></div><span class="text-small" data-value="direction"></span></div>
+    <div class="card viz-stat"><span>t пересечения</span><div class="viz-stat-value tabular-nums" data-value="crossing"></div><span class="text-small" data-value="crossing-kind"></span></div>
+  </div>
+  <div class="wd-vector-values tabular-nums" data-role="vectors"></div>
+  <div class="wd-plot"><svg class="wd-geometry" role="img" aria-label="Отрезок, выпуклое окно, выбранная сторона, внутренняя нормаль и точка пересечения"></svg></div>
+  <div class="viz-row wd-legend"><span><i class="wd-visible"></i>Видимая часть</span><span><i class="wd-edge"></i>Сторона и нормаль</span><span><i class="wd-cross"></i>Пересечение I</span><span>● P(t)</span></div>
+  <label class="form-label wd-t-label">t <output class="tabular-nums" data-value="t"></output><input class="form-range" data-role="t" aria-label="Параметр t" type="range" min="0" max="1" step="0.0001" value="0"></label>
+  <div class="wd-point-values tabular-nums" data-role="point-values"></div>
+  <div class="wd-result tabular-nums" data-role="result"></div>
+  <div class="table-responsive"><table class="table table-sm"><thead><tr><th>Сторона</th><th>n</th><th>W</th><th>D</th><th>−W/D</th><th>Ограничение</th><th>Интервал</th></tr></thead><tbody data-role="rows"></tbody></table></div>
+  <span class="sr-only" data-role="live" aria-live="polite"></span>
+</div>
+</section>
+<div class="workspace" id="workspace"><aside><form id="data-form"><label>Алгоритм<select id="algorithm"><option value="liang">Лианг–Барски</option><option value="cohen">Сазерленд–Коэн</option><option value="midpoint">Средняя точка</option></select></label><p hidden id="method-note" class="note"></p>
+<label>Контрольный набор<select id="preset"><option value="mixed">Пересечение, внутри и снаружи</option><option value="boundary">Границы, касания и точка</option><option value="outside">Полностью невидимые</option></select></label>
+<div class="field-title"><label for="segments">Отрезки и прямоугольное окно</label><label class="file-button">Открыть TXT<input id="file" type="file" accept=".txt,.json,text/plain,application/json"></label></div><textarea id="segments" spellcheck="false" rows="10"></textarea><p hidden class="note" id="format-note">Первая строка: n. Далее n строк: x₁ y₁ x₂ y₂. Последняя: xmin ymin xmax ymax. Можно использовать дробные числа с точкой.</p>
+<div id="clip-fields" hidden><label for="clip">Вершины выпуклого окна</label><textarea id="clip" rows="6" spellcheck="false">-6 -4
+4 -5
+8 1
+3 6
+-5 5</textarea></div>
+<div id="subject-fields" hidden><label for="subject">Вершины отсекаемого выпуклого многоугольника</label><textarea id="subject" rows="6" spellcheck="false">-10 -1
+-1 -8
+10 -1
+7 8
+-4 9</textarea></div>
+<div id="midpoint-fields" hidden><label>Точность средней точки ε<input id="epsilon" type="number" value="0.0000001" min="0.00000001" max="0.01" step="any"></label></div>
+<button class="primary full" type="submit">Выполнить отсечение</button><p id="error" role="alert" class="error"></p><p id="status" role="status" class="note"></p>
+</form><div class="aside-actions"><button id="save-input">Сохранить вход</button><button id="save-result">Результат JSON</button></div></aside>
+<section class="visual"><div class="plot-toolbar"><div><strong id="plot-title">Лианг–Барски</strong><span id="summary" role="status"></span></div><div class="actions"><button id="fit">Вписать</button><button id="png">Скачать PNG</button></div></div>
+<div class="canvas-wrap"><canvas id="plot" role="img" aria-label="Координатная плоскость с исходной и отсечённой геометрией"></canvas><output id="coords">x: 0; y: 0</output></div>
+<div class="legend"><span><i class="window"></i>Отсекающее окно</span><span><i class="source"></i>Исходная геометрия</span><span><i class="visible"></i>Видимая часть</span><span><i class="interim"></i>Текущий шаг</span></div>
+<div class="view-options"><label><input id="show-source" type="checkbox" checked> Исходные фигуры</label><label><input id="show-grid" type="checkbox" checked> Сетка</label><label><input id="add-mode" type="checkbox"> Добавлять отрезки</label><span id="scale-label"></span></div>
+<section class="trace"><div class="trace-head"><h2>Ход алгоритма</h2><label id="selection-label">Отрезок<select id="selected"></select></label></div><div class="playback"><button id="first" aria-label="Первый шаг">|‹</button><button id="prev" aria-label="Предыдущий шаг">‹</button><button id="play">Пуск</button><button id="next" aria-label="Следующий шаг">›</button><input type="range" id="step" min="0" value="0" max="1" aria-label="Шаг алгоритма"><output id="step-label"></output><button id="last">Итог</button></div><p id="step-detail" aria-live="polite"></p><div id="interval" class="interval" hidden><div id="interval-fill"></div><span>0</span><span>t</span><span>1</span></div><div class="table-wrap"><table><thead><tr><th>Шаг</th><th>Действие</th><th>Вычисление</th></tr></thead><tbody id="trace-body"></tbody></table></div></section>
+<section class="results"><h2>Результаты в мировых координатах</h2><div class="table-wrap"><table><thead id="result-head"></thead><tbody id="result-body"></tbody></table></div><p hidden id="result-note" class="note"></p></section>
+</section></div>
+
+<footer>Лабораторная работа №4 · Вариант 14</footer></main></body></html>
